@@ -888,7 +888,7 @@
     function solicitarLicencia() {
       document.getElementById('modal-licencia').style.display = 'flex';
     }
-    function enviarLicencia() {
+    async function enviarLicencia() {
       const nombre = document.getElementById('lic-nombre').value.trim();
       const email  = document.getElementById('lic-email').value.trim();
       if (!nombre || !email) {
@@ -896,13 +896,34 @@
         return;
       }
       document.getElementById('lic-error').style.display = 'none';
-      const asunto = encodeURIComponent('Solicitud de licencia MU Leveling Bot');
-      const cuerpo = encodeURIComponent(`Hola, quiero solicitar mi licencia para el MU Leveling Bot.\n\nNombre: ${nombre}\nEmail: ${email}`);
-      window.location.href = `mailto:spsoft.adm@gmail.com?subject=${asunto}&body=${cuerpo}`;
-      setTimeout(() => {
-        document.getElementById('form-licencia').style.display = 'none';
-        document.getElementById('lic-enviado').style.display = 'block';
-      }, 800);
+      const btn = document.querySelector('#form-licencia .btn-primary');
+      btn.innerText = 'Enviando...';
+      btn.disabled = true;
+      try {
+        const resp = await fetch('https://formspree.io/f/xpqewewb', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            nombre: nombre,
+            email: email,
+            message: `Solicitud de licencia MU Leveling Bot\n\nNombre: ${nombre}\nEmail: ${email}`
+          })
+        });
+        if (resp.ok) {
+          document.getElementById('form-licencia').style.display = 'none';
+          document.getElementById('lic-enviado').style.display = 'block';
+        } else {
+          document.getElementById('lic-error').innerText = 'Error al enviar. Intentá de nuevo.';
+          document.getElementById('lic-error').style.display = 'block';
+          btn.innerText = 'Enviar solicitud';
+          btn.disabled = false;
+        }
+      } catch(e) {
+        document.getElementById('lic-error').innerText = 'Error de conexión. Intentá de nuevo.';
+        document.getElementById('lic-error').style.display = 'block';
+        btn.innerText = 'Enviar solicitud';
+        btn.disabled = false;
+      }
     }
     function copiarKey() {
       const key = document.getElementById('trial-key').innerText;
